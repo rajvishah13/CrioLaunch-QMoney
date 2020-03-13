@@ -1,4 +1,3 @@
-
 package com.crio.warmup.stock;
 
 import com.crio.warmup.stock.dto.PortfolioTrade;
@@ -109,13 +108,14 @@ public class PortfolioManagerApplication {
 
   public static List<String> debugOutputs() {
 
-     String valueOfArgument0 = "trades.json";
-     String resultOfResolveFilePathArgs0 = "/home/crio-user/workspace/kevalya-rajvi-ME_QMONEY/qmoney/bin/main/trades.json";
-     String toStringOfObjectMapper = "com.fasterxml.jackson.databind.ObjectMapper@6d9f7a80";
-     String functionNameFromTestFileInStackTrace = "mainReadFile()";
-     String lineNumberFromTestFileInStackTrace = "22";
-     
-     return Arrays.asList(new String[] { valueOfArgument0, 
+    String valueOfArgument0 = "trades.json";
+    String resultOfResolveFilePathArgs0 = "/home/crio-user/workspace/kevalya-rajvi-ME_QMONEY/" 
+                                           + "qmoney/bin/main/trades.json";
+    String toStringOfObjectMapper = "com.fasterxml.jackson.databind.ObjectMapper@6d9f7a80";
+    String functionNameFromTestFileInStackTrace = "mainReadFile()";
+    String lineNumberFromTestFileInStackTrace = "22";
+
+    return Arrays.asList(new String[] { valueOfArgument0, 
       resultOfResolveFilePathArgs0, toStringOfObjectMapper,
         functionNameFromTestFileInStackTrace, lineNumberFromTestFileInStackTrace });
   }
