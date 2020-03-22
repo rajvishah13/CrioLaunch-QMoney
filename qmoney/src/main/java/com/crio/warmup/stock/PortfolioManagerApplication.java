@@ -1,7 +1,11 @@
+
 package com.crio.warmup.stock;
 
+import com.crio.warmup.stock.dto.AnnualizedReturn;
+import com.crio.warmup.stock.dto.PortfolioTrade;
 import com.crio.warmup.stock.dto.PortfolioTrade;
 import com.crio.warmup.stock.dto.TiingoCandle;
+
 import com.crio.warmup.stock.dto.TotalReturnsDto;
 import com.crio.warmup.stock.log.UncaughtExceptionHandler;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -10,16 +14,22 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
+import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
+import org.apache.commons.math3.util.FastMath;
 import org.apache.logging.log4j.ThreadContext;
 import org.springframework.web.client.RestTemplate;
 
@@ -77,46 +87,13 @@ public class PortfolioManagerApplication {
     return objectMapper;
   }
 
-  // TODO: CRIO_TASK_MODULE_JSON_PARSING
-  // Follow the instructions provided in the task documentation and fill up the
-  // correct values for
-  // the variables provided. First value is provided for your reference.
-  // A. Put a breakpoint on the first line inside mainReadFile() which says
-  // return Collections.emptyList();
-  // B. Then Debug the test #mainReadFile provided in
-  // PortfoliomanagerApplicationTest.java
-  // following the instructions to run the test.
-  // Once you are able to run the test, perform following tasks and record the
-  // output as a
-  // String in the function below.
-  // Use this link to see how to evaluate expressions -
-  // https://code.visualstudio.com/docs/editor/debugging#_data-inspection
-  // 1. evaluate the value of "args[0]" and set the value
-  // to the variable named valueOfArgument0 (This is implemented for your
-  // reference.)
-  // 2. In the same window, evaluate the value of expression below and set it
-  // to resultOfResolveFilePathArgs0
-  // expression ==> resolveFileFromResources(args[0])
-  // 3. In the same window, evaluate the value of expression below and set it
-  // to toStringOfObjectMapper.
-  // You might see some garbage numbers in the output. Dont worry, its expected.
-  // expression ==> getObjectMapper().toString()
-  // 4. Now Go to the debug window and open stack trace. Put the name of the
-  // function you see at
-  // second place from top to variable functionNameFromTestFileInStackTrace
-  // 5. In the same window, you will see the line number of the function in the
-  // stack trace window.
-  // assign the same to lineNumberFromTestFileInStackTrace
-  // Once you are done with above, just run the corresponding test and
-  // make sure its working as expected. use below command to do the same.
-  // ./gradlew test --tests PortfolioManagerApplicationTest.testDebugValues
 
   public static List<String> debugOutputs() {
 
     String valueOfArgument0 = "trades.json";
     String resultOfResolveFilePathArgs0 = "/home/crio-user/workspace/kevalya-rajvi-ME_QMONEY/"
                                           + "qmoney/bin/main/trades.json";
-    String toStringOfObjectMapper = "com.fasterxml.jackson.databind.ObjectMapper@6d9f7a80";
+    String toStringOfObjectMapper =  "com.fasterxml.jackson.databind.ObjectMapper@6d9f7a80";
     String functionNameFromTestFileInStackTrace = "mainReadFile()";
     String lineNumberFromTestFileInStackTrace = "22";
 
@@ -191,12 +168,73 @@ public class PortfolioManagerApplication {
     return sortedlist;
   }
 
+  public static List<AnnualizedReturn> mainCalculateSingleReturn(String[] args) 
+      throws IOException, URISyntaxException {
+    ObjectMapper objectmapper = getObjectMapper();
+    File newfile = resolveFileFromResources(args[0]);
+    PortfolioTrade[] module1 = objectmapper.readValue(newfile, PortfolioTrade[].class);
+    List<String> list = new ArrayList<>();
 
+    if (module1 == null) {
+      return Collections.emptyList();
+    } else {
+      for (int i = 0; i < module1.length; i++) {
+        list.add(module1[i].getSymbol());
+      }
+    }
 
+    LocalDate newdate = LocalDate.parse(args[1]);
+    for (int r = 0; r < list.size(); r++) {
+      if (newdate.compareTo((module1[r].getPurchaseDate())) < 0) {
+        throw new RuntimeException();
+      }
 
+    }
 
+    List<AnnualizedReturn> annual = new ArrayList<>();
+    for (int index = 0; index < list.size(); index++) {
 
+      RestTemplate restTemplate = new RestTemplate();
+      TiingoCandle[] result = restTemplate.getForObject(
+          "https://api.tiingo.com/tiingo/daily/{ticker}/prices?startDate={startdate}&endDate={enddate}&token={token}",
+          TiingoCandle[].class, module1[index].getSymbol(), 
+          module1[index].getPurchaseDate(), args[1],
+          "c20ff9c98c36c01588ed641ace2bd65ec932cff3");
+      if (result != null) {
 
+        Double open = result[0].getOpen();
+        Double close = result[result.length - 1].getClose();
+        annual.add(calculateAnnualizedReturns(newdate, module1[index], open, close));
+
+      } else {
+        throw new RuntimeException();
+      }
+
+    }
+    Collections.sort(annual, new Comparator<AnnualizedReturn>() {
+
+      @Override
+      public int compare(AnnualizedReturn o1, AnnualizedReturn o2) {
+        return o2.getAnnualizedReturn().compareTo(o1.getAnnualizedReturn());
+      }
+
+    });
+    return annual;
+
+  }
+
+  public static AnnualizedReturn calculateAnnualizedReturns(
+      LocalDate endDate, PortfolioTrade trade, Double buyPrice,
+      Double sellPrice) {
+    Double totalReturns = (sellPrice - buyPrice) / buyPrice;
+    LocalDate purchasedate = trade.getPurchaseDate();
+    Double days = (double) ChronoUnit.DAYS.between(purchasedate, endDate);
+    
+    Double y = days / 365;
+    Double annualizedReturns = FastMath.pow(1 + totalReturns, 1 / y) - 1;
+    return new AnnualizedReturn(trade.getSymbol(), annualizedReturns, totalReturns);
+    
+  }
 
 
   public static void main(String[] args) throws Exception {
@@ -205,31 +243,38 @@ public class PortfolioManagerApplication {
 
     printJsonObject(mainReadFile(args));
     printJsonObject(mainReadQuotes(args));
+    printJsonObject(mainCalculateSingleReturn(args));
 
   }
-
 }
 
-  // TODO: CRIO_TASK_MODULE_REST_API
-  //  Copy the relavent code from #mainReadFile to parse the Json into PortfolioTrade list.
-  //  Now That you have the list of PortfolioTrade already populated in module#1
-  //  For each stock symbol in the portfolio trades,
-  //  Call Tiingo api (https://api.tiingo.com/tiingo/daily/<ticker>/prices?startDate=&endDate=&token=)
-  //  with
-  //   1. ticker = symbol in portfolio_trade
-  //   2. startDate = purchaseDate in portfolio_trade.
-  //   3. endDate = args[1]
-  //  Use RestTemplate#getForObject in order to call the API,
-  //  and deserialize the results in List<Candle>
-  //  Note - You may have to register on Tiingo to get the api_token.
-  //    Please refer the the module documentation for the steps.
-  //  Find out the closing price of the stock on the end_date and
-  //  return the list of all symbols in ascending order by its close value on endDate
-  //  Test the function using gradle commands below
-  //   ./gradlew run --args="trades.json 2020-01-01"
-  //   ./gradlew run --args="trades.json 2019-07-01"
-  //   ./gradlew run --args="trades.json 2019-12-03"
-  //  And make sure that its printing correct results.
 
+
+  // TODO: CRIO_TASK_MODULE_CALCULATIONS
+  //  Copy the relevant code from #mainReadQuotes to parse the Json into PortfolioTrade list and
+  //  Get the latest quotes from TIingo.
+  //  Now That you have the list of PortfolioTrade And their data,
+  //  With this data, Calculate annualized returns for the stocks provided in the Json
+  //  Below are the values to be considered for calculations.
+  //  buy_price = open_price on purchase_date and sell_value = close_price on end_date
+  //  startDate and endDate are already calculated in module2
+  //  using the function you just wrote #calculateAnnualizedReturns
+  //  Return the list of AnnualizedReturns sorted by annualizedReturns in descending order.
+  //  use gralde command like below to test your code
+  //  ./gradlew run --args="trades.json 2020-01-01"
+  //  ./gradlew run --args="trades.json 2019-07-01"
+  //  ./gradlew run --args="trades.json 2019-12-03"
+  //  where trades.json is your json file
 
   
+
+  // TODO: CRIO_TASK_MODULE_CALCULATIONS
+  //  annualized returns should be calculated in two steps -
+  //  1. Calculate totalReturn = (sell_value - buy_value) / buy_value
+  //  Store the same as totalReturns
+  //  2. calculate extrapolated annualized returns by scaling the same in years span. The formula is
+  //  annualized_returns = (1 + total_returns) ^ (1 / total_num_years) - 1
+  //  Store the same as annualized_returns
+  //  return the populated list of AnnualizedReturn for all stocks,
+  //  Test the same using below specified command. The build should be successful
+  //  ./gradlew test --tests PortfolioManagerApplicationTest.testCalculateAnnualizedReturn
