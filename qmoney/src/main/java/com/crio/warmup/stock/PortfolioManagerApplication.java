@@ -114,11 +114,11 @@ public class PortfolioManagerApplication {
   public static List<String> debugOutputs() {
 
     String valueOfArgument0 = "trades.json";
-    String resultOfResolveFilePathArgs0 = "/home/crio-user/workspace/tapan007panchal-ME_QMONEY/"
+    String resultOfResolveFilePathArgs0 = "/home/crio-user/workspace/kevalya-rajvi-ME_QMONEY/"
                                           + "qmoney/bin/main/trades.json";
-    String toStringOfObjectMapper = "com.fasterxml.jackson.databind.ObjectMapper@6d9f7a8";
+    String toStringOfObjectMapper = "com.fasterxml.jackson.databind.ObjectMapper@6d9f7a80";
     String functionNameFromTestFileInStackTrace = "mainReadFile()";
-    String lineNumberFromTestFileInStackTrace = "24";
+    String lineNumberFromTestFileInStackTrace = "22";
 
     return Arrays.asList(new String[] { valueOfArgument0, resultOfResolveFilePathArgs0, 
         toStringOfObjectMapper, functionNameFromTestFileInStackTrace, 
