@@ -1,21 +1,23 @@
-
 package com.crio.warmup.stock;
 
 import com.crio.warmup.stock.dto.AnnualizedReturn;
 import com.crio.warmup.stock.dto.PortfolioTrade;
-import com.crio.warmup.stock.dto.PortfolioTrade;
 import com.crio.warmup.stock.dto.TiingoCandle;
-
 import com.crio.warmup.stock.dto.TotalReturnsDto;
 import com.crio.warmup.stock.log.UncaughtExceptionHandler;
+
+import com.crio.warmup.stock.portfolio.PortfolioManager;
+import com.crio.warmup.stock.portfolio.PortfolioManagerFactory;
+
+//import com.crio.warmup.stock.dto.PortfolioTrade;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
 import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
-import java.nio.file.Files;
 import java.nio.file.Paths;
+//import java.nio.file.Files;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
@@ -24,14 +26,17 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
-import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
+//import java.util.logging.Level;
+//import java.util.logging.Logger;
+//import java.util.stream.Collectors;
+//import java.util.stream.Stream;
 
 import org.apache.commons.math3.util.FastMath;
 import org.apache.logging.log4j.ThreadContext;
 import org.springframework.web.client.RestTemplate;
+
+//build successful in terminal, checkStyleMain error in assessment??!!!, TRIAL 2
 
 public class PortfolioManagerApplication {
 
@@ -54,8 +59,8 @@ public class PortfolioManagerApplication {
   public static List<String> mainReadFile(String[] args) throws IOException, URISyntaxException {
     File file = resolveFileFromResources(args[0]);
 
-    //byte[] byteArray = Files.readAllBytes(file.toPath());
-    //String content = new String(byteArray);
+    // byte[] byteArray = Files.readAllBytes(file.toPath());
+    // String content = new String(byteArray);
 
     ObjectMapper mapper = getObjectMapper();
     PortfolioTrade[] trades = mapper.readValue(file, PortfolioTrade[].class);
@@ -77,8 +82,8 @@ public class PortfolioManagerApplication {
   }
 
   private static File resolveFileFromResources(String filename) throws URISyntaxException {
-    return Paths.get(Thread.currentThread().getContextClassLoader()
-    .getResource(filename).toURI()).toFile();
+    return Paths.get(Thread.currentThread()
+    .getContextClassLoader().getResource(filename).toURI()).toFile();
   }
 
   private static ObjectMapper getObjectMapper() {
@@ -87,19 +92,18 @@ public class PortfolioManagerApplication {
     return objectMapper;
   }
 
-
   public static List<String> debugOutputs() {
 
     String valueOfArgument0 = "trades.json";
-    String resultOfResolveFilePathArgs0 = "/home/crio-user/workspace/kevalya-rajvi-ME_QMONEY/"
-                                          + "qmoney/bin/main/trades.json";
-    String toStringOfObjectMapper =  "com.fasterxml.jackson.databind.ObjectMapper@6d9f7a80";
+    String resultOfResolveFilePathArgs0 = "/home/crio-user/workspace/tapan007panchal-ME_QMONEY/"
+        + "qmoney/bin/main/trades.json";
+    String toStringOfObjectMapper = "com.fasterxml.jackson.databind.ObjectMapper@6d9f7a8";
     String functionNameFromTestFileInStackTrace = "mainReadFile()";
-    String lineNumberFromTestFileInStackTrace = "22";
+    String lineNumberFromTestFileInStackTrace = "24";
 
-    return Arrays.asList(new String[] { valueOfArgument0, resultOfResolveFilePathArgs0, 
-        toStringOfObjectMapper, functionNameFromTestFileInStackTrace, 
-        lineNumberFromTestFileInStackTrace });
+    return Arrays.asList(new String[] { valueOfArgument0, 
+      resultOfResolveFilePathArgs0, toStringOfObjectMapper,
+      functionNameFromTestFileInStackTrace, lineNumberFromTestFileInStackTrace });
   }
 
   public static List<String> mainReadQuotes(String[] args) throws IOException, URISyntaxException {
@@ -129,10 +133,11 @@ public class PortfolioManagerApplication {
 
       RestTemplate restTemplate = new RestTemplate();
       TiingoCandle[] result = restTemplate.getForObject(
-          "https://api.tiingo.com/tiingo/daily/{ticker}/prices?startDate={startdate}&endDate={enddate}&token={token}",
-          TiingoCandle[].class, module1[index].getSymbol(), 
-          module1[index].getPurchaseDate(), args[1],
-          "c20ff9c98c36c01588ed641ace2bd65ec932cff3");
+          "https://api.tiingo.com/tiingo/daily/{ticker}/prices?"
+          + "startDate={startdate}&endDate={enddate}&token={token}",
+          TiingoCandle[].class, module1[index].getSymbol(),
+           module1[index].getPurchaseDate(), args[1],
+          "147916a4435c6967738cc6b6986e966f2bfbe5b7");
       if (result != null) {
 
         for (int j = 0; j < result.length; j++) {
@@ -199,7 +204,7 @@ public class PortfolioManagerApplication {
           "https://api.tiingo.com/tiingo/daily/{ticker}/prices?startDate={startdate}&endDate={enddate}&token={token}",
           TiingoCandle[].class, module1[index].getSymbol(), 
           module1[index].getPurchaseDate(), args[1],
-          "c20ff9c98c36c01588ed641ace2bd65ec932cff3");
+          "38279ba8f3e5e2679d83bf9ed962a63a809aa69c");
       if (result != null) {
 
         Double open = result[0].getOpen();
@@ -236,45 +241,33 @@ public class PortfolioManagerApplication {
     
   }
 
+  public static List<AnnualizedReturn> mainCalculateReturnsAfterRefactor(String[] args)
+      throws Exception {
+    
+    RestTemplate restTemplate = new RestTemplate();
+    PortfolioManagerFactory factory = new PortfolioManagerFactory();
+    PortfolioManager portfolioManager = factory.getPortfolioManager(restTemplate);
+    // String file = args[0];
+    ObjectMapper objectmapper = getObjectMapper();
+    File newfile = resolveFileFromResources(args[0]);
+    PortfolioTrade[] portfolioTrades = objectmapper.readValue(newfile, PortfolioTrade[].class);
+    
+    LocalDate endDate = LocalDate.parse(args[1]);
+    // String contents = readFileAsString(file);
+    return portfolioManager.calculateAnnualizedReturn(Arrays.asList(portfolioTrades), endDate);
+    
+  }
 
   public static void main(String[] args) throws Exception {
+   
     Thread.setDefaultUncaughtExceptionHandler(new UncaughtExceptionHandler());
     ThreadContext.put("runId", UUID.randomUUID().toString());
 
     printJsonObject(mainReadFile(args));
     printJsonObject(mainReadQuotes(args));
     printJsonObject(mainCalculateSingleReturn(args));
+    printJsonObject(mainCalculateReturnsAfterRefactor(args));
 
   }
+
 }
-
-
-
-  // TODO: CRIO_TASK_MODULE_CALCULATIONS
-  //  Copy the relevant code from #mainReadQuotes to parse the Json into PortfolioTrade list and
-  //  Get the latest quotes from TIingo.
-  //  Now That you have the list of PortfolioTrade And their data,
-  //  With this data, Calculate annualized returns for the stocks provided in the Json
-  //  Below are the values to be considered for calculations.
-  //  buy_price = open_price on purchase_date and sell_value = close_price on end_date
-  //  startDate and endDate are already calculated in module2
-  //  using the function you just wrote #calculateAnnualizedReturns
-  //  Return the list of AnnualizedReturns sorted by annualizedReturns in descending order.
-  //  use gralde command like below to test your code
-  //  ./gradlew run --args="trades.json 2020-01-01"
-  //  ./gradlew run --args="trades.json 2019-07-01"
-  //  ./gradlew run --args="trades.json 2019-12-03"
-  //  where trades.json is your json file
-
-  
-
-  // TODO: CRIO_TASK_MODULE_CALCULATIONS
-  //  annualized returns should be calculated in two steps -
-  //  1. Calculate totalReturn = (sell_value - buy_value) / buy_value
-  //  Store the same as totalReturns
-  //  2. calculate extrapolated annualized returns by scaling the same in years span. The formula is
-  //  annualized_returns = (1 + total_returns) ^ (1 / total_num_years) - 1
-  //  Store the same as annualized_returns
-  //  return the populated list of AnnualizedReturn for all stocks,
-  //  Test the same using below specified command. The build should be successful
-  //  ./gradlew test --tests PortfolioManagerApplicationTest.testCalculateAnnualizedReturn
