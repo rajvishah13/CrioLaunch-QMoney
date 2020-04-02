@@ -15,5 +15,3 @@ public interface PortfolioManager {
       LocalDate endDate) throws JsonProcessingException
   ;
 }
-
-
