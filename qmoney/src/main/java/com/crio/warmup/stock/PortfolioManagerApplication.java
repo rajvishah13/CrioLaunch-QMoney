@@ -95,11 +95,11 @@ public class PortfolioManagerApplication {
   public static List<String> debugOutputs() {
 
     String valueOfArgument0 = "trades.json";
-    String resultOfResolveFilePathArgs0 = "/home/crio-user/workspace/tapan007panchal-ME_QMONEY/"
+    String resultOfResolveFilePathArgs0 = "/home/crio-user/workspace/kevalya-rajvi-ME_QMONEY/"
         + "qmoney/bin/main/trades.json";
-    String toStringOfObjectMapper = "com.fasterxml.jackson.databind.ObjectMapper@6d9f7a8";
+    String toStringOfObjectMapper = "com.fasterxml.jackson.databind.ObjectMapper@6d9f7a80";
     String functionNameFromTestFileInStackTrace = "mainReadFile()";
-    String lineNumberFromTestFileInStackTrace = "24";
+    String lineNumberFromTestFileInStackTrace = "22";
 
     return Arrays.asList(new String[] { valueOfArgument0, 
       resultOfResolveFilePathArgs0, toStringOfObjectMapper,
@@ -137,7 +137,7 @@ public class PortfolioManagerApplication {
           + "startDate={startdate}&endDate={enddate}&token={token}",
           TiingoCandle[].class, module1[index].getSymbol(),
            module1[index].getPurchaseDate(), args[1],
-          "147916a4435c6967738cc6b6986e966f2bfbe5b7");
+          "c20ff9c98c36c01588ed641ace2bd65ec932cff3");
       if (result != null) {
 
         for (int j = 0; j < result.length; j++) {
@@ -204,7 +204,7 @@ public class PortfolioManagerApplication {
           "https://api.tiingo.com/tiingo/daily/{ticker}/prices?startDate={startdate}&endDate={enddate}&token={token}",
           TiingoCandle[].class, module1[index].getSymbol(), 
           module1[index].getPurchaseDate(), args[1],
-          "38279ba8f3e5e2679d83bf9ed962a63a809aa69c");
+          "c20ff9c98c36c01588ed641ace2bd65ec932cff3");
       if (result != null) {
 
         Double open = result[0].getOpen();
